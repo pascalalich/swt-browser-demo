@@ -8,7 +8,7 @@ import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.StatusLineManager;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
-import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -126,18 +126,29 @@ public class ZwibblerEditor extends EditorPart implements
 	}
 
 	private void initViewer() {
-		int width = 1200;
-		int height = 1024;
-		Rectangle bounds = browser.getBounds();
-		width = bounds.width;
-		height = bounds.height;
-//		browser.setUrl("file:///C:/Users/ALP/Documents/GitHub/swt-browser-demo/html/zwibbler.html");
+		Point size = getInitialSize(browser);
+		int width = size.x;
+		int height = size.y;
+		// browser.setUrl("file:///C:/Users/ALP/Documents/GitHub/swt-browser-demo/html/zwibbler.html");
 		// TODO setText in Webkit und Mozilla?
 		browser.setText("<html><body><script src=\"http://zwibbler.com/component.js#width="
 				+ width
 				+ "&height="
 				+ height
 				+ "\" type=\"text/javascript\"></script><body></html>");
+	}
+
+	private Point getInitialSize(Composite c) {
+		Point size = c.getSize();
+		if (size.x == 0 && size.y == 0) {
+			if (c.getParent() != null) {
+				size = getInitialSize(c.getParent());
+			} else {
+				// TODO constant
+				size = new Point(800, 600);
+			}
+		}
+		return size;
 	}
 
 	@Override
