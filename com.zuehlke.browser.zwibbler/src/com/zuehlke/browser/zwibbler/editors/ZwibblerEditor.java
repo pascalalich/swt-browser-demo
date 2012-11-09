@@ -1,46 +1,41 @@
 package com.zuehlke.browser.zwibbler.editors;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.action.IMenuManager;
-import org.eclipse.jface.action.IStatusLineManager;
-import org.eclipse.jface.action.IToolBarManager;
-import org.eclipse.jface.action.StatusLineManager;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
-import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.browser.BrowserFunction;
+import org.eclipse.swt.browser.ProgressAdapter;
+import org.eclipse.swt.browser.ProgressEvent;
+import org.eclipse.swt.events.ControlAdapter;
+import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.internal.browser.BrowserViewer;
-import org.eclipse.ui.internal.browser.IBrowserViewerContainer;
 import org.eclipse.ui.part.EditorPart;
-import org.eclipse.ui.services.IServiceLocator;
 
-@SuppressWarnings("restriction")
-public class ZwibblerEditor extends EditorPart implements
-		IBrowserViewerContainer {
+import com.zuehlke.browser.zwibbler.Activator;
 
-	private BrowserViewer viewer;
+public class ZwibblerEditor extends EditorPart {
 
 	private Browser browser;
 
-	private StatusLineManager statusLineManager = new StatusLineManager();
-
-	private IActionBars actionBars = new StatusLineActionBars();
+	private boolean dirty;
 
 	@Override
 	public void doSave(IProgressMonitor monitor) {
-		// TODO Auto-generated method stub
+		executeJsFile("saveZwibbler.js");
 	}
 
 	@Override
@@ -62,8 +57,7 @@ public class ZwibblerEditor extends EditorPart implements
 
 	@Override
 	public boolean isDirty() {
-		// TODO Auto-generated method stub
-		return false;
+		return dirty;
 	}
 
 	@Override
@@ -72,147 +66,132 @@ public class ZwibblerEditor extends EditorPart implements
 	}
 
 	@Override
-	public void createPartControl(Composite parent) {
-		Composite composite = new Composite(parent, SWT.NONE);
-		composite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		GridLayout compositeLayout = new GridLayout();
-		compositeLayout.marginHeight = 0;
-		compositeLayout.marginBottom = 2;
-		compositeLayout.marginWidth = 0;
-		compositeLayout.verticalSpacing = 0;
-		compositeLayout.horizontalSpacing = 0;
-		composite.setLayout(compositeLayout);
-		// viewer = new BrowserViewer(composite, buildBrowserStyle());
-		// viewer.setContainer(this);
-		// viewer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		browser = new Browser(composite, buildBrowserStyle());
-		browser.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-
-		Label separator = new Label(composite, SWT.NONE);
-		Display display = PlatformUI.getWorkbench().getDisplay();
-		separator
-				.setBackground(display.getSystemColor(SWT.COLOR_WIDGET_BORDER));
-		GridData separatorLayoutData = new GridData(SWT.FILL, SWT.CENTER, true,
-				false);
-		separatorLayoutData.heightHint = 1;
-		separator.setLayoutData(separatorLayoutData);
-
-		Composite statusLineBox = new Composite(composite, SWT.NONE);
-		statusLineBox.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true,
-				false));
-		GridLayout statusLineBoxLayout = new GridLayout();
-		statusLineBoxLayout.marginHeight = 0;
-		statusLineBoxLayout.marginTop = 2;
-		statusLineBoxLayout.marginBottom = 0;
-		statusLineBoxLayout.marginWidth = 3;
-		statusLineBoxLayout.marginRight = 4;
-		statusLineBoxLayout.verticalSpacing = 0;
-		statusLineBoxLayout.horizontalSpacing = 0;
-		statusLineBox.setLayout(statusLineBoxLayout);
-
-		Control statusLine = statusLineManager.createControl(statusLineBox);
-		GridData statusLayoutData = new GridData(SWT.FILL, SWT.CENTER, true,
-				false);
-		statusLayoutData.verticalIndent = 0;
-		statusLayoutData.horizontalIndent = 0;
-		statusLine.setLayoutData(statusLayoutData);
-
-		initViewer();
-	}
-
-	private int buildBrowserStyle() {
-		// TODO implement
-		return SWT.WEBKIT;
-	}
-
-	private void initViewer() {
-		Point size = getInitialSize(browser);
-		int width = size.x;
-		int height = size.y;
-		// browser.setUrl("file:///C:/Users/ALP/Documents/GitHub/swt-browser-demo/html/zwibbler.html");
-		// TODO setText in Webkit und Mozilla?
-		browser.setText("<html><body><script src=\"http://zwibbler.com/component.js#width="
-				+ width
-				+ "&height="
-				+ height
-				+ "\" type=\"text/javascript\"></script><body></html>");
-	}
-
-	private Point getInitialSize(Composite c) {
-		Point size = c.getSize();
-		if (size.x == 0 && size.y == 0) {
-			if (c.getParent() != null) {
-				size = getInitialSize(c.getParent());
-			} else {
-				// TODO constant
-				size = new Point(800, 600);
-			}
-		}
-		return size;
-	}
-
-	@Override
 	public void setFocus() {
 		browser.setFocus();
 	}
 
 	@Override
-	public boolean close() {
-		// TODO implement correctly
-		return false;
+	public void createPartControl(Composite parent) {
+		browser = new Browser(parent, SWT.WEBKIT);
+		browser.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+
+		browser.addControlListener(new ControlAdapter() {
+			@Override
+			public void controlResized(ControlEvent e) {
+				updateZwibblerLayout();
+			}
+		});
+
+		setDirty(true);
+		updatePartName();
+		initZwibbler();
 	}
 
-	@Override
-	public IActionBars getActionBars() {
-		return actionBars;
+	private void setDirty(boolean dirty) {
+		this.dirty = dirty;
+		firePropertyChange(PROP_DIRTY);
 	}
 
-	@Override
-	public void openInExternalBrowser(String url) {
-		throw new UnsupportedOperationException();
+	private void updatePartName() {
+		IFileEditorInput input = (IFileEditorInput) getEditorInput();
+		String partName = "New Zwibbler";
+		if (input.getFile() != null) {
+			partName = input.getName();
+		}
+		setPartName(partName);
+		firePropertyChange(PROP_TITLE);
 	}
 
-	// Unfortunately the BrowserViewer requires an IActionBars implementation,
-	// but only uses IStatusLineManager
-	private class StatusLineActionBars implements IActionBars {
+	private void initZwibbler() {
+		String url = Activator.getDefault().getHtmlFileURL("zwibbler.html")
+				.toExternalForm();
+		System.out.println("Setting URL to browser: " + url);
+		browser.addProgressListener(new ProgressAdapter() {
+			@Override
+			public void completed(ProgressEvent event) {
+				new BrowserFunction(browser, "loadZwibbler") {
+					@Override
+					public Object function(Object[] arguments) {
+						return loadZwibbler();
+					}
+				};
 
-		@Override
-		public IStatusLineManager getStatusLineManager() {
-			return statusLineManager;
+				new BrowserFunction(browser, "saveZwibbler") {
+					@Override
+					public Object function(Object[] arguments) {
+						String zwibblerString = (String) arguments[0];
+						saveZwibbler(zwibblerString);
+						return null;
+					}
+				};
+
+				updateZwibblerLayout();
+				executeJsFile("loadZwibbler.js");
+			}
+		});
+
+		Browser.clearSessions();
+		browser.setUrl(url);
+	}
+
+	private void updateZwibblerLayout() {
+		executeJsFile("initZwibbler.js", browser.getSize().x,
+				browser.getSize().y);
+	}
+
+	private String loadZwibbler() {
+		String zwibblerString = "zwibbler3.[]";
+		IFileEditorInput input = (IFileEditorInput) getEditorInput();
+		IFile file = input.getFile();
+		if (file != null) {
+			try {
+				StringBuilder b = new StringBuilder();
+				InputStream in = file.getContents(true);
+				InputStreamReader reader = new InputStreamReader(in, "UTF-8");
+				int c;
+				while ((c = reader.read()) != -1) {
+					b.append((char) c);
+				}
+				zwibblerString = b.toString();
+
+			} catch (CoreException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
+		return zwibblerString;
+	}
 
-		@Override
-		public void clearGlobalActionHandlers() {
+	private void saveZwibbler(String zwibblerString) {
+		System.out.println(zwibblerString);
+		try {
+			IFile file = ((IFileEditorInput) getEditorInput()).getFile();
+			file.setContents(
+					new ByteArrayInputStream(zwibblerString.getBytes("UTF-8")),
+					true, // keep saving, even if IFile is out of sync with the
+							// Workspace
+					false, // dont keep history
+					new NullProgressMonitor()); // progress monitor
+		} catch (CoreException e) {
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
 		}
+	}
 
-		@Override
-		public IAction getGlobalActionHandler(String actionId) {
-			return null;
+	private void executeJsFile(String fileName, Object... args) {
+		String jsCode = Activator.getDefault().getJavaScript(fileName);
+		executeJsCode(jsCode, args);
+	}
+
+	private void executeJsCode(String jsCode, Object... args) {
+		if (args != null && args.length > 0) {
+			jsCode = String.format(jsCode, args);
 		}
-
-		@Override
-		public IMenuManager getMenuManager() {
-			return null;
-		}
-
-		@Override
-		public IServiceLocator getServiceLocator() {
-			return null;
-		}
-
-		@Override
-		public IToolBarManager getToolBarManager() {
-			return null;
-		}
-
-		@Override
-		public void setGlobalActionHandler(String actionId, IAction handler) {
-		}
-
-		@Override
-		public void updateActionBars() {
-		}
-
+		System.out.println("Executing JS: " + jsCode);
+		boolean executed = browser.execute(jsCode);
+		System.out.println(executed);
 	}
 
 }

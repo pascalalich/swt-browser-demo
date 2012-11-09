@@ -1,0 +1,1 @@
+zwibbler.loadFromString(loadZwibbler(), function() {});

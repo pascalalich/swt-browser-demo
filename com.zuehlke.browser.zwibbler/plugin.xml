@@ -11,5 +11,19 @@
             name="Zwibbler Editor">
       </editor>
    </extension>
+   <extension
+         point="org.eclipse.ui.newWizards">
+      <category
+            id="com.zuehlke.browser.zwibbler"
+            name="Zwibbler">
+      </category>
+      <wizard
+            category="com.zuehlke.browser.zwibbler"
+            class="com.zuehlke.browser.zwibbler.wizards.NewZwibblerWizard"
+            icon="icons/sample.gif"
+            id="com.zuehlke.browser.zwibbler.wizards.SampleNewWizard"
+            name="Zwibbler file">
+      </wizard>
+   </extension>
 
 </plugin>

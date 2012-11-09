@@ -1,1 +1,22 @@
-<html><body><script src="http://zwibbler.com/component.js#width=800&height=600" type="text/javascript"></script><body></html>
+<html>
+	<head>
+		<script type="text/javascript">
+			function initFrame() {
+				var frame = document.getElementsByTagName("iframe")[0];
+				//frame.onload = function() {
+					//var innerDoc = frame.contentWindow ? frame.contentWindow.document : frame.contentDocument;
+					frame.onclick = function(e) {
+						alert(e);
+					};
+					/*var canvas = innerDoc.getElementsByTagName("canvas")[0];
+					canvas.onclick = function() {
+						alert("changed");
+					};*/
+				//};
+			}
+		</script>
+	</head>
+	<body onload="initFrame();">
+		<script src="http://zwibbler.com/component.js#width=800&height=500" type="text/javascript"></script>
+	<body>
+</html>
