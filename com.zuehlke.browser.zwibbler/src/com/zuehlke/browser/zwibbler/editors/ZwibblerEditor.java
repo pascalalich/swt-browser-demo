@@ -180,7 +180,7 @@ public class ZwibblerEditor extends EditorPart {
 		}
 	}
 
-	private void executeJsFile(String fileName, Object... args) {
+	public void executeJsFile(String fileName, Object... args) {
 		String jsCode = Activator.getDefault().getJavaScript(fileName);
 		executeJsCode(jsCode, args);
 	}
@@ -192,6 +192,14 @@ public class ZwibblerEditor extends EditorPart {
 		System.out.println("Executing JS: " + jsCode);
 		boolean executed = browser.execute(jsCode);
 		System.out.println(executed);
+	}
+
+	public IFile getFile() {
+		return ((IFileEditorInput) getEditorInput()).getFile();
+	}
+	
+	public Browser getBrowser() {
+		return browser;
 	}
 
 }

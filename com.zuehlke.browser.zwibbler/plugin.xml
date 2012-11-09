@@ -22,8 +22,46 @@
             class="com.zuehlke.browser.zwibbler.wizards.NewZwibblerWizard"
             icon="icons/sample.gif"
             id="com.zuehlke.browser.zwibbler.wizards.SampleNewWizard"
-            name="Zwibbler file">
+            name="Zwibbler File">
       </wizard>
+   </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+      <command
+            id="com.zuehlke.browser.zwibbler.commands.download"
+            name="Download">
+      </command>
+   </extension>
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            allPopups="false"
+            locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
+         <toolbar
+               id="com.zuehlke.browser.zwibbler.toolbar">
+            <command
+                  commandId="com.zuehlke.browser.zwibbler.commands.download"
+                  icon="icons/sample.gif"
+                  label="Download as PNG..."
+                  style="push">
+            </command>
+         </toolbar>
+      </menuContribution>
+   </extension>
+   <extension
+         point="org.eclipse.ui.handlers">
+      <handler
+            class="com.zuehlke.browser.zwibbler.download.DownloadHandler"
+            commandId="com.zuehlke.browser.zwibbler.commands.download">
+         <enabledWhen>
+            <with
+                  variable="activeEditorId">
+               <equals
+                     value="com.zuehlke.browser.zwibbler.editors.ZwibblerEditor">
+               </equals>
+            </with>
+         </enabledWhen>
+      </handler>
    </extension>
 
 </plugin>
