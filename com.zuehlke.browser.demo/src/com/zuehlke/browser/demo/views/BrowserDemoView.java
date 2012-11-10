@@ -4,6 +4,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.browser.LocationAdapter;
 import org.eclipse.swt.browser.LocationEvent;
@@ -15,6 +16,7 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.browser.IWebBrowser;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
+import org.eclipse.ui.internal.browser.BrowserViewer;
 import org.eclipse.ui.internal.browser.WebBrowserView;
 
 @SuppressWarnings("restriction")
@@ -25,7 +27,9 @@ public class BrowserDemoView extends WebBrowserView {
 	
 	@Override
 	public void createPartControl(Composite parent) {
-		super.createPartControl(parent);
+		viewer = new BrowserViewer(parent, SWT.NONE);
+		viewer.setContainer(this);
+		initDragAndDrop();
 		
 		init();
 		setURL(START_URL);
