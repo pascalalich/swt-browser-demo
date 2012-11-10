@@ -1,11 +1,20 @@
 package com.zuehlke.browser.demo.views;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.browser.LocationAdapter;
 import org.eclipse.swt.browser.LocationEvent;
 import org.eclipse.swt.browser.ProgressAdapter;
 import org.eclipse.swt.browser.ProgressEvent;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.browser.IWebBrowser;
+import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 import org.eclipse.ui.internal.browser.WebBrowserView;
 
 @SuppressWarnings("restriction")
@@ -49,13 +58,26 @@ public class BrowserDemoView extends WebBrowserView {
 			@Override
 			public void changing(LocationEvent event) {
 				// Restrict browser to Eclipse Wiki
-				event.doit = event.location.startsWith(RESTRICT_URL);
-			}
-			
-			@Override
-			public void changed(LocationEvent event) {
+				if (!event.location.startsWith(RESTRICT_URL)) {
+					event.doit = false;
+					Shell modalShell = PlatformUI.getWorkbench()
+							.getModalDialogShellProvider().getShell();
+					MessageDialog.openInformation(modalShell,
+							"Sandbox restriction",
+							"Navigation is restricted to: " + RESTRICT_URL);
+				}
 				if (event.location.endsWith("#startDemo")) {
 					System.out.println("Starting demo...");
+					IWorkbenchBrowserSupport browserSupport = PlatformUI.getWorkbench().getBrowserSupport();
+					try {
+						IWebBrowser externalBrowser = browserSupport.getExternalBrowser();
+						externalBrowser.openURL(new URL("http://www.zwibbler.com"));
+					} catch (PartInitException e) {
+						e.printStackTrace();
+					} catch (MalformedURLException e) {
+						e.printStackTrace();
+					}
+					event.doit = false;
 				}
 			}
 		});
