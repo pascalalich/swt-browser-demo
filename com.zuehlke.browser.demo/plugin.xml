@@ -4,13 +4,25 @@
    <extension
          point="org.eclipse.ui.views">
       <view
-            category="org.eclipse.ui"
+            category="com.zuehlke.browser.demo.views.category"
             class="com.zuehlke.browser.demo.views.BrowserDemoView"
             icon="icons/web.gif"
             id="com.zuehlke.browser.demo.views.BrowserDemoView"
             name="Browser Demo"
             restorable="true">
       </view>
+      <view
+            category="com.zuehlke.browser.demo.views.category"
+            class="com.zuehlke.browser.demo.views.TwitterWidgetView"
+            icon="icons/twitter.gif"
+            id="com.zuehlke.browser.demo.views.TwitterWidgetView"
+            name="Twitter"
+            restorable="true">
+      </view>
+      <category
+            id="com.zuehlke.browser.demo.views.category"
+            name="Browser Demo">
+      </category>
    </extension>
 
 </plugin>
