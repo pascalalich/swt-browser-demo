@@ -29,6 +29,11 @@ import com.zuehlke.browser.zwibbler.Activator;
 
 public class ZwibblerEditor extends EditorPart {
 
+	/**
+	 * The String representation of an empty Zwibbler drawing.
+	 */
+	private static final String EMPTY_ZWIBBLER = "zwibbler3.[]";
+
 	private Browser browser;
 
 	private boolean dirty;
@@ -75,6 +80,7 @@ public class ZwibblerEditor extends EditorPart {
 		browser = new Browser(parent, SWT.WEBKIT);
 		browser.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
+		// react to resize actions
 		browser.addControlListener(new ControlAdapter() {
 			@Override
 			public void controlResized(ControlEvent e) {
@@ -82,14 +88,19 @@ public class ZwibblerEditor extends EditorPart {
 			}
 		});
 
-		setDirty(true);
+		// initialize as dirty as there is no way to get informed about changes
+		reportDirtyState(true);
+
 		updatePartName();
+
 		initZwibbler();
 	}
 
-	private void setDirty(boolean dirty) {
-		this.dirty = dirty;
-		firePropertyChange(PROP_DIRTY);
+	private void reportDirtyState(boolean dirty) {
+		if (dirty != this.dirty) {
+			this.dirty = dirty;
+			firePropertyChange(PROP_DIRTY);
+		}
 	}
 
 	private void updatePartName() {
@@ -105,32 +116,22 @@ public class ZwibblerEditor extends EditorPart {
 	private void initZwibbler() {
 		String url = Activator.getDefault().getHtmlFileURL("zwibbler.html")
 				.toExternalForm();
-		System.out.println("Setting URL to browser: " + url);
 		browser.addProgressListener(new ProgressAdapter() {
 			@Override
 			public void completed(ProgressEvent event) {
-				new BrowserFunction(browser, "loadZwibbler") {
-					@Override
-					public Object function(Object[] arguments) {
-						return loadZwibbler();
-					}
-				};
-
-				new BrowserFunction(browser, "saveZwibbler") {
-					@Override
-					public Object function(Object[] arguments) {
-						String zwibblerString = (String) arguments[0];
-						saveZwibbler(zwibblerString);
-						return null;
-					}
-				};
+				initLoadFunction();
+				initSaveFunction();
 
 				updateZwibblerLayout();
 				executeJsFile("loadZwibbler.js");
 			}
 		});
 
+		// if we do not clear the sessions,
+		// the canvas initializes with the latest drawing
 		Browser.clearSessions();
+
+		System.out.println("Setting URL to browser: " + url);
 		browser.setUrl(url);
 	}
 
@@ -139,20 +140,24 @@ public class ZwibblerEditor extends EditorPart {
 				browser.getSize().y);
 	}
 
+	private void initLoadFunction() {
+		new BrowserFunction(browser, "loadZwibbler") {
+			@Override
+			public Object function(Object[] arguments) {
+				return loadZwibbler();
+			}
+		};
+		// TODO find a place to dispose the function
+	}
+
 	private String loadZwibbler() {
-		String zwibblerString = "zwibbler3.[]";
+		String zwibblerString = EMPTY_ZWIBBLER;
 		IFileEditorInput input = (IFileEditorInput) getEditorInput();
 		IFile file = input.getFile();
 		if (file != null) {
 			try {
-				StringBuilder b = new StringBuilder();
 				InputStream in = file.getContents(true);
-				InputStreamReader reader = new InputStreamReader(in, "UTF-8");
-				int c;
-				while ((c = reader.read()) != -1) {
-					b.append((char) c);
-				}
-				zwibblerString = b.toString();
+				zwibblerString = readText(in);
 
 			} catch (CoreException e) {
 				e.printStackTrace();
@@ -163,16 +168,37 @@ public class ZwibblerEditor extends EditorPart {
 		return zwibblerString;
 	}
 
+	private String readText(InputStream in) throws IOException {
+		StringBuilder b = new StringBuilder();
+		InputStreamReader reader = new InputStreamReader(in, "UTF-8");
+		int c;
+		while ((c = reader.read()) != -1) {
+			b.append((char) c);
+		}
+		return b.toString();
+	}
+
+	private void initSaveFunction() {
+		new BrowserFunction(browser, "saveZwibbler") {
+			@Override
+			public Object function(Object[] arguments) {
+				String zwibblerString = (String) arguments[0];
+				saveZwibbler(zwibblerString);
+				return null;
+			}
+		};
+		// TODO find a place to dispose the function
+	}
+
 	private void saveZwibbler(String zwibblerString) {
-		System.out.println(zwibblerString);
+		System.out.println("Saving Zwibbler: " + zwibblerString);
 		try {
-			IFile file = ((IFileEditorInput) getEditorInput()).getFile();
+			IFile file = getFile();
 			file.setContents(
 					new ByteArrayInputStream(zwibblerString.getBytes("UTF-8")),
-					true, // keep saving, even if IFile is out of sync with the
-							// Workspace
-					false, // dont keep history
-					new NullProgressMonitor()); // progress monitor
+					true, // save, even if file is out of sync
+					false, // don't keep history
+					new NullProgressMonitor());
 		} catch (CoreException e) {
 			e.printStackTrace();
 		} catch (UnsupportedEncodingException e) {
@@ -197,9 +223,8 @@ public class ZwibblerEditor extends EditorPart {
 	public IFile getFile() {
 		return ((IFileEditorInput) getEditorInput()).getFile();
 	}
-	
+
 	public Browser getBrowser() {
 		return browser;
 	}
-
 }
