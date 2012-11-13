@@ -8,6 +8,8 @@ import org.eclipse.ui.internal.browser.WebBrowserView;
 @SuppressWarnings("restriction")
 public class TwitterWidgetView extends WebBrowserView {
 
+	public static final String VIEW_ID = "com.zuehlke.browser.demo.views.TwitterWidgetView";
+
 	private static final String START_URL = "http://www.alichs.de/twitter.html";
 
 	@Override
