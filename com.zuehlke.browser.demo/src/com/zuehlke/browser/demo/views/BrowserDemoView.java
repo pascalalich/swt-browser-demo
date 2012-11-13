@@ -19,6 +19,7 @@ import org.eclipse.ui.internal.browser.WebBrowserView;
 @SuppressWarnings("restriction")
 public class BrowserDemoView extends WebBrowserView {
 
+	public static final String VIEW_ID = "com.zuehlke.browser.demo.views.BrowserDemoView";
 	private static final String START_URL = "http://wiki.eclipse.org/Eclipse_DemoCamps_November_2012/Hamburg";
 	private static final String RESTRICT_URL = "http://wiki.eclipse.org";
 
@@ -72,9 +73,9 @@ public class BrowserDemoView extends WebBrowserView {
 							"Navigation is restricted to: " + RESTRICT_URL);
 				}
 				if (event.location.endsWith("#startDemo")) {
+					event.doit = false;
 					System.out.println("Starting demo...");
 					openTwitterView();
-					event.doit = false;
 				}
 			}
 

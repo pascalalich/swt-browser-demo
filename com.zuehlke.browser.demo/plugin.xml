@@ -24,5 +24,14 @@
             name="Browser Demo">
       </category>
    </extension>
+   <extension
+         point="org.eclipse.ui.perspectives">
+      <perspective
+            class="com.zuehlke.browser.demo.perspective.PerspectiveFactory"
+            icon="icons/web.gif"
+            id="com.zuehlke.browser.demo.perspective"
+            name="Browser Demo">
+      </perspective>
+   </extension>
 
 </plugin>
