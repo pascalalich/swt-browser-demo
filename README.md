@@ -2,7 +2,8 @@ SWT Browser Demo
 ================
 Intro
 -----
-This project is a sample application created for the *Eclipse DemoCamp Nov. 14th 2012*. 
+This project is an Eclipse RCP sample application created for the *Eclipse DemoCamp Nov. 14th 2012*. 
+It demonstrates the SWT Browser that allows integrating web browsers to a rich client application.
 See http://wiki.eclipse.org/Eclipse_DemoCamps_November_2012/Hamburg for details.
 
 Demos
