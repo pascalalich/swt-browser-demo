@@ -19,7 +19,7 @@ Demos
 
 Let it run!
 -----------
-1. Install Eclipse 3.8 (Juno) for RCP Developers (I have not tested it with Eclipse 4)
+1. Install Eclipse 3.8 (Juno) for RCP Developers (I have not tested it with Eclipse 4, you could try to use its  [compatibility layer](http://www.vogella.com/articles/Eclipse4MigrationGuide/article.html) if needed)
 1. Download this project *swt-browser-demo* to an arbitrary location
 1. Import all projects into a new workspace
   1. File / Import / Plug-ins and Fragments
